@@ -1,35 +1,89 @@
-# Desktop App Template (C#)
-デスクトップアプリ作成用テンプレートファイル
+# SQL説明ツール
 
-## Purpose
-This repository is a template for building C# desktop applications using Codex + GitHub.
+## 概要
 
-## Target
+本アプリは、SQLクエリを人間が理解しやすい文章に変換する  
+C#製のデスクトップアプリケーションです。
 
-- .NET (latest stable)
-- WPF or WinForms
+主に以下の用途を想定しています：
 
-## How to use
+- SQLの学習補助
+- クエリ内容の理解支援
+- 複雑なSQLの可読化
 
-1. Copy this repository
-2. Replace this README with your app description
-3. Keep AGENTS.md for development rules
-4. Start Codex with an initial task
+---
 
-## Initial Codex prompt
+## 主な機能（初期スコープ）
 
-Read this repository and propose a minimal desktop application plan.
+- SQLクエリの入力
+- SQLの簡易解析
+- 人間が読める形式での説明表示
+
+※ 最初は最小構成で実装し、段階的に機能追加を行う
+
+---
+
+## 技術スタック
+
+- C# / .NET（最新安定版）
+- WPF または WinForms（初期実装はシンプルなUI）
+
+---
+
+## 使い方（開発者向け）
+
+1. 本リポジトリをベースに開発を行う
+2. AGENTS.md に従って実装を進める
+3. 小さな単位で変更・検証を行う
+4. 必要に応じて README を更新する
+
+---
+
+### 初期指示（Codex用）
+
+```text
+Read this repository and propose a minimal implementation plan for a C# desktop application that explains SQL queries.
 Do not code yet.
+```
 
-After that, implement the smallest working application.
+※日本語訳：
+このリポジトリを読み取り、SQLを説明するC#デスクトップアプリの最小構成の実装計画を作成してください。
+まだコードは書かないでください。
 
-## Scope
+次に：
 
-- Keep structure simple
-- Prefer minimal UI first
-- Add features incrementally
+```text
+Implement the smallest working version.
+The application should allow input of an SQL query and display a simple explanation.
+Keep changes minimal and reviewable.
+```
 
-## Notes
+※日本語訳：
+最小構成で動作するバージョンを実装してください。
+SQLを入力でき、その内容を簡単に説明表示するアプリにしてください。
+変更は最小限にし、レビューしやすい形にしてください。
 
-- Ensure the app builds successfully
-- Keep dependencies minimal
+---
+
+## 開発方針
+
+- シンプルな構成を優先する
+- 不要な依存関係を追加しない
+- 小さく作って段階的に改善する
+- 常にビルド可能な状態を保つ
+
+---
+
+## 今後の拡張例
+
+- SQL構文ごとの詳細説明
+- ハイライト表示
+- エラーチェック
+- 複雑なクエリ対応（JOIN / サブクエリ等）
+
+---
+
+## 注意事項
+
+- 本ツールは学習用途を主目的とする
+- 完全なSQLパーサーではなく、段階的に精度を上げる
