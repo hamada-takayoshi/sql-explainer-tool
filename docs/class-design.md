@@ -1,7 +1,7 @@
-# クラス設計（P3-02 着手）
+# クラス設計（P3-03 完了 / P4-01 完了）
 
-この文書は、実装前タスク `P3-01: クラス責務定義` と
-`P3-02: クラス間I/F定義` の着手版です。  
+この文書は、実装前タスク `P3-01: クラス責務定義`、
+`P3-02: クラス間I/F定義`、`P3-03: 拡張ポイント最小設計`、`P4-01: クラス設計文書化` の完了内容を含みます。  
 Phase 2 までに確定したUI仕様（単画面・入力→実行→表示）を前提に、
 UI とロジックを分離する最小クラス責務を定義します。
 
@@ -173,3 +173,110 @@ UIが必要とする「説明文 + 警告情報」を明確化するため、DTO
 - 出力要件「説明文 + 警告情報」を `SqlExplanationResult` に明示した。
 - クラス図のDTOプロパティ表記をI/F定義と整合させた。
 - 次タスク（P3-03）で、将来拡張を見据えた最小分割方針を定義する。
+
+
+## 8. 拡張ポイント最小設計（P3-03）
+
+P3-03では、MVPの単純さを維持しながら、将来の対応句拡張（例: `JOIN`）を
+局所変更で追加できる最小分割のみを定義する。
+
+### 8-1. 最小分割方針
+
+- `MainWindow` は引き続き `SqlExplanationService.Explain` のみを呼び出す。
+- `SqlExplanationService` 内部を、以下2段の私有メソッドに限定して分割する。
+  - 句の抽出: `ExtractClauses(string sql)`
+  - 句の説明生成: `BuildClauseExplanation(ExtractedClauses clauses)`
+- 公開I/Fは `Explain(string sql)` の1メソッドを維持する。
+
+> 目的: 拡張時にUIや公開I/Fを変更せず、サービス内部だけを差し替え可能にする。
+
+### 8-2. 追加する内部DTO（最小）
+
+`SqlExplanationResult` はUI返却用として維持し、
+サービス内部専用に `ExtractedClauses`（内部DTO）を1つだけ追加可能とする。
+
+| 名称 | 想定スコープ | 役割 | 備考 |
+|---|---|---|---|
+| `ExtractedClauses` | `SqlExplanationService` 内部 | SELECT/FROM/WHERE/JOIN 等の抽出結果を保持 | UI層へは公開しない |
+
+### 8-3. 拡張時の変更境界（例: JOIN対応）
+
+- 変更対象
+  - `ExtractClauses` に `JOIN` 抽出ロジックを追加
+  - `BuildClauseExplanation` に `JOIN` 説明文生成を追加
+- 変更しない対象
+  - `MainWindow`
+  - `SqlExplanationService.Explain(string sql)` のシグネチャ
+  - `SqlExplanationResult` の基本プロパティ構成
+
+### 8-4. 過剰設計を避けるための非採用項目
+
+現時点では以下を採用しない。
+
+- 句ごとの Strategy / Factory などのパターン分割
+- 句ごとの独立クラス大量導入
+- 汎用ASTや外部SQLパーサ依存の導入
+
+理由: 初期対応範囲（SELECT/FROM/WHERE）には分割コストが過大で、
+保守性より複雑性増加の影響が大きいため。
+
+### 8-5. P3-03 完了判定への対応
+
+- 拡張余地: `JOIN` 等の追加変更点をサービス内部に限定できる設計を明示した。
+- 最小性: 公開I/FとUI依存を増やさず、内部DTO 1つまでに抑える方針を明示した。
+- 非過剰: 高度な設計パターンを非採用とし、MVP相当の単純性を維持した。
+
+
+## 9. クラス設計文書化（P4-01 完了）
+
+P4-01 の完了条件「クラス一覧、責務、主要メソッド、依存関係、入出力例を文書化」を
+満たすため、既存セクションの対応関係を明確化する。
+
+### 9-1. P4-01 要件との対応表
+
+| P4-01 の要求項目 | 本文の対応セクション |
+|---|---|
+| クラス一覧 | 2章 |
+| 責務 | 3章 |
+| 主要メソッド | 6章（I/F定義）・8章（内部メソッド方針） |
+| 依存関係 | 2-1章（クラス図）・4章（責務分離の意図） |
+| 入出力例 | 6-5章 |
+
+### 9-2. 主要メソッド一覧（実装前仕様）
+
+| クラス | メソッド | 公開/非公開 | 役割 |
+|---|---|---|---|
+| `MainWindow` | `OnExplainClicked()` | 公開（イベントハンドラ） | 入力取得→サービス呼出→UI反映 |
+| `SqlExplanationService` | `Explain(string sql)` | 公開 | SQL説明結果を統一DTOで返却 |
+| `SqlExplanationService` | `ExtractClauses(string sql)` | 非公開（想定） | 句単位の抽出（拡張ポイント） |
+| `SqlExplanationService` | `BuildClauseExplanation(ExtractedClauses clauses)` | 非公開（想定） | 抽出結果から説明文を組み立てる |
+
+
+
+### 9-3. 主要メソッドの前提条件/事後条件（pre/post conditions）
+
+| メソッド | 前提条件（Preconditions） | 事後条件（Postconditions） |
+|---|---|---|
+| `MainWindow.OnExplainClicked()` | 画面初期化済みで `SqlExplanationService` が利用可能である。SQL入力欄は空文字を許容する。 | 入力文字列を `Explain` に1回渡し、返却された `SqlExplanationResult` に基づいて説明欄/メッセージ欄を更新する。未処理例外をUI層外へ伝播させない。 |
+| `SqlExplanationService.Explain(string sql)` | `sql` は `null` または文字列を受け入れる。呼び出し側はUI依存情報を渡さない。 | 常に non-null の `SqlExplanationResult` を返す。`IsSuccess=true` の場合は説明表示に必要な文言を返し、`IsSuccess=false` の場合は `MessageText` に失敗理由を設定する。 |
+| `SqlExplanationService.ExtractClauses(string sql)` | `Explain` 内部からのみ呼び出す。入力は前処理（trim/null吸収）後のSQL文字列である。 | `ExtractedClauses` を返し、対応句（SELECT/FROM/WHERE）と未対応句の検出結果を保持する。抽出不能時は呼び出し元が失敗結果へ変換可能な状態（空/フラグ）を返す。 |
+| `SqlExplanationService.BuildClauseExplanation(ExtractedClauses clauses)` | `clauses` は non-null。`ExtractClauses` の返却形式に準拠している。 | 句別説明文と警告情報（未対応句等）を構築し、`SqlExplanationResult` 組み立てに必要な中間情報を返す。UIレイアウト依存の情報は含めない。 |
+
+## 10. P3-03結果のレビュー観点接続（P4-02 準備）
+
+P4-02 での合否判定に利用できるよう、P3-03 の方針をレビュー観点へ接続する。
+
+### 10-1. レビュー観点マッピング
+
+| P3-03で定義した方針 | P4-02レビュー観点 | 判定質問（Yes/No） |
+|---|---|---|
+| 公開I/Fを `Explain(string sql)` に固定 | MVP逸脱防止 | 新規機能追加で公開I/Fが増えていないか |
+| UIは `MainWindow`、ロジックはサービスに集中 | 責務分離 | UI層にSQL解析ロジックが混入していないか |
+| 内部DTOを最小（`ExtractedClauses` 1つ） | 肥大化防止 | 句ごとの不要なクラス分割が増えていないか |
+| JOIN拡張は内部メソッド変更で吸収 | 保守性 | 機能追加時に変更範囲がサービス内部へ閉じているか |
+
+### 10-2. P3-03 完了判定
+
+- 追加拡張時の変更境界を明示したため「拡張余地」を満たす。
+- 公開I/F固定・内部最小分割により「過剰設計なし」を満たす。
+- よって、P3-03 は本ドキュメント上で完了と判定する。
