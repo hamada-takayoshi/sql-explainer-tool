@@ -1,0 +1,74 @@
+name: Self-heal CI (minimal)
+
+on:
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-fix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout failed branch head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Try build and test once
+        id: first_try
+        continue-on-error: true
+        run: |
+          dotnet restore tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj
+          dotnet build tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-restore
+          dotnet test tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-build
+
+      - name: Install dotnet-format
+        if: ${{ steps.first_try.outcome == 'failure' }}
+        run: dotnet tool install -g dotnet-format
+
+      - name: Apply minimal automatic fixes
+        if: ${{ steps.first_try.outcome == 'failure' }}
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet format tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --verbosity diagnostic || true
+
+      - name: Re-run build and test after fixes
+        id: second_try
+        if: ${{ steps.first_try.outcome == 'failure' }}
+        continue-on-error: true
+        run: |
+          dotnet restore tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj
+          dotnet build tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-restore
+          dotnet test tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-build
+
+      - name: Create pull request with auto-fix
+        if: ${{ steps.first_try.outcome == 'failure' && steps.second_try.outcome == 'success' }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ci/auto-fix-${{ github.run_id }}
+          commit-message: "chore(ci): apply minimal self-heal fixes"
+          title: "chore(ci): build failure self-heal"
+          body: |
+            CI失敗を検知したため、最小限の自動修復（dotnet format）を適用しました。
+            - 失敗したワークフロー: ${{ github.event.workflow_run.html_url }}
+            - 対象ブランチ: `${{ github.event.workflow_run.head_branch }}`
+            
+            必要に応じて内容を確認してマージしてください。
+
+      - name: Report unresolved failure
+        if: ${{ steps.first_try.outcome == 'failure' && steps.second_try.outcome == 'failure' }}
+        run: |
+          echo "Self-heal could not resolve the failure automatically."
+          echo "Original workflow: ${{ github.event.workflow_run.html_url }}"
+          exit 1
