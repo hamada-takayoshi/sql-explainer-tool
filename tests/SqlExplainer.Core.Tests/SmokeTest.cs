@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace SqlExplainer.Core.Tests;
 
 public sealed class SmokeTest
