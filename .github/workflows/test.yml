@@ -5,6 +5,7 @@ on:
     branches:
       - '**'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -19,6 +20,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: .NET info
+        run: dotnet --info
+
       - name: Restore
         run: dotnet restore tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj
 
@@ -26,4 +30,11 @@ jobs:
         run: dotnet build tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-build --verbosity normal
+        run: dotnet test tests/SqlExplainer.Core.Tests/SqlExplainer.Core.Tests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
