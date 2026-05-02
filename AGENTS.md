@@ -20,6 +20,17 @@
 - UI とロジックは分離する (separate UI and logic)
 - 過剰設計を避ける (avoid over-engineering)
 - 必要に応じてテストを追加する (add tests if applicable)
+- 公開 API（public / protected）には XML ドキュメントコメントを付与する
+- ソース内コメントは「処理意図・前提・注意点」を補足する目的で適度に記述する
+- 自明な処理の説明コメントは避け、保守に有益な情報を優先する
+
+---
+
+## ドキュメントコメント運用 (Documentation Comment Policy)
+
+- XML ドキュメントコメントには `<summary>` を必須とする
+- 必要に応じて `<param>` / `<returns>` / `<remarks>` を追加する
+- 実装変更時はコメントとの整合性を必ず確認する
 
 ---
 
