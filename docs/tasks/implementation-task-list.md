@@ -32,10 +32,10 @@ No.1（要件固定）とNo.2（設計）は完了済みのため、ここでは
 
 - [x] IMP-003 インターフェース定義
 - [x] IMP-004 テストプロジェクト作成
-- [ ] IMP-005 UT（SELECT基本）
-- [ ] IMP-006 UT（WHERE/JOIN/ORDER BY）
-- [ ] IMP-007 UT（異常系）
-- [ ] IMP-008 UT（境界値）
+- [x] IMP-005 UT（SELECT基本）
+- [x] IMP-006 UT（WHERE/JOIN/ORDER BY）
+- [x] IMP-007 UT（異常系）
+- [x] IMP-008 UT（境界値）
 - [ ] IMP-009 パーサ/前処理
 - [ ] IMP-010 説明生成ロジック
 - [ ] IMP-011 UI実装
