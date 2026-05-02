@@ -1,0 +1,5 @@
+root = true
+
+[*.cs]
+# Require XML documentation comments for public/protected members.
+dotnet_diagnostic.CS1591.severity = warning
