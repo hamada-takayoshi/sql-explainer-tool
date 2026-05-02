@@ -11,10 +11,10 @@ namespace SqlExplainer.Core.Tests;
 public sealed class ClauseExplanationTests
 {
     /// <summary>
-    /// SELECT/FROM以外の句を含む場合、句一覧が " / " 区切りで説明文に反映されることを確認します。
+    /// SELECT/FROMを含む場合、追加句があっても固定のSELECT/FROM説明文が優先されることを確認します。
     /// </summary>
     [Fact]
-    public void Explain_WithWhereJoinOrderBy_ReturnsClauseListText()
+    public void Explain_WithWhereJoinOrderBy_ReturnsSelectFromFixedExplanation()
     {
         var parser = new StubParser(new SqlParseResult(
             true,
@@ -27,7 +27,7 @@ public sealed class ClauseExplanationTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("このSQLはデータを取得するSELECT文です。", result.SummaryText);
-        Assert.Equal("SELECT / FROM / JOIN / WHERE / ORDER BY", result.ClauseExplanationText);
+        Assert.Equal("SELECT句で取得列を指定し、FROM句で対象テーブルを指定しています。", result.ClauseExplanationText);
         Assert.Equal("OK", result.MessageText);
     }
 

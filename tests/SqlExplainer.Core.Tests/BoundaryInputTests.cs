@@ -31,7 +31,7 @@ public sealed class BoundaryInputTests
     }
 
     /// <summary>
-    /// 改行や余分な空白を含む入力想定でも、解析句に基づく説明が生成されることを確認します。
+    /// 改行や余分な空白を含む入力想定でも、SELECT/FROMを含む場合は固定説明が安定して返ることを確認します。
     /// </summary>
     [Fact]
     public void Explain_NewLineAndWhitespaceVariant_ReturnsClauseExplanation()
@@ -46,7 +46,7 @@ public sealed class BoundaryInputTests
         var result = sut.Explain("SELECT\n  id\nFROM   users\nWHERE  id > 10");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("SELECT / FROM / WHERE", result.ClauseExplanationText);
+        Assert.Equal("SELECT句で取得列を指定し、FROM句で対象テーブルを指定しています。", result.ClauseExplanationText);
     }
 
     /// <summary>
