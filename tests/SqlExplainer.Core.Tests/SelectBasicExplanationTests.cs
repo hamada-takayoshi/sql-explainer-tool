@@ -23,7 +23,7 @@ public sealed class SelectBasicExplanationTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("このSQLはデータを取得するSELECT文です。", result.SummaryText);
-        Assert.Equal("SELECT句で取得列を指定し、FROM句で対象テーブルを指定しています。", result.ClauseExplanationText);
+        Assert.Equal("SELECT句で取得する列を指定しています。 FROM句で対象テーブルを指定しています。", result.ClauseExplanationText);
         Assert.Equal("OK", result.MessageText);
     }
 
