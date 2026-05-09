@@ -11,10 +11,10 @@ namespace SqlExplainer.Core.Tests;
 public sealed class ClauseExplanationTests
 {
     /// <summary>
-    /// SELECT/FROMを含む場合、追加句があっても固定のSELECT/FROM説明文が優先されることを確認します。
+    /// WHERE/JOIN/ORDER BYなどの複数句を含む場合に、各句の説明文が連結されることを確認します。
     /// </summary>
     [Fact]
-    public void Explain_WithWhereJoinOrderBy_ReturnsSelectFromFixedExplanation()
+    public void Explain_WithWhereJoinOrderBy_ReturnsAllClauseExplanations()
     {
         var parser = new StubParser(new SqlParseResult(
             true,
@@ -27,12 +27,12 @@ public sealed class ClauseExplanationTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("このSQLはデータを取得するSELECT文です。", result.SummaryText);
-        Assert.Equal("SELECT句で取得列を指定し、FROM句で対象テーブルを指定しています。", result.ClauseExplanationText);
+        Assert.Equal("SELECT句で取得する列を指定しています。 FROM句で対象テーブルを指定しています。 JOIN句でテーブルを結合しています。 WHERE句で抽出条件を指定しています。 ORDER BY句で並び順を指定しています。", result.ClauseExplanationText);
         Assert.Equal("OK", result.MessageText);
     }
 
     /// <summary>
-    /// FROM句を欠くSELECT句のみの解析結果では、固定文ではなく句一覧が返ることを確認します。
+    /// FROM句を欠くSELECT句のみの解析結果でも、SELECT句の自然文が返ることを確認します。
     /// </summary>
     [Fact]
     public void Explain_SelectOnly_ReturnsClauseListText()
@@ -43,7 +43,7 @@ public sealed class ClauseExplanationTests
         var result = sut.Explain("SELECT 1");
 
         Assert.True(result.IsSuccess);
-        Assert.Equal("SELECT", result.ClauseExplanationText);
+        Assert.Equal("SELECT句で取得する列を指定しています。", result.ClauseExplanationText);
     }
 
     /// <summary>
